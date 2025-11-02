@@ -283,6 +283,8 @@ fork(void)
   struct proc *np;
   struct proc *p = myproc();
 
+  p->traced = 0;
+
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
@@ -695,4 +697,16 @@ procdump(void)
   }
 }
 
+struct proc* find_proc_by_pid(int pid)
+{
+  struct proc *p;
 
+  for(p = proc; p < &proc[NPROC]; p++)
+  {
+    if(p->pid == pid)
+    {
+      return p;
+    }
+  }
+  return 0;
+}

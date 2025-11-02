@@ -102,6 +102,7 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_trace(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -127,9 +128,33 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_trace]   sys_trace,
 };
 
-
+static char *syscall_names[] = {
+[SYS_fork]    "fork",
+[SYS_exit]    "exit",
+[SYS_wait]    "wait",
+[SYS_pipe]    "pipe",
+[SYS_read]    "read",
+[SYS_kill]    "kill",
+[SYS_exec]    "exec",
+[SYS_fstat]   "fstat",
+[SYS_chdir]   "chdir",
+[SYS_dup]     "dup",
+[SYS_getpid]  "getpid",
+[SYS_sbrk]    "sbrk",
+[SYS_sleep]   "sleep",
+[SYS_uptime]  "uptime",
+[SYS_open]    "open",
+[SYS_write]   "write",
+[SYS_mknod]   "mknod",
+[SYS_unlink]  "unlink",
+[SYS_link]    "link",
+[SYS_mkdir]   "mkdir",
+[SYS_close]   "close",
+[SYS_trace]   "trace",
+};
 
 
 
@@ -143,7 +168,51 @@ syscall(void)
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
+    uint64 arg0 = p->trapframe->a0;
     p->trapframe->a0 = syscalls[num]();
+    //uint64 arg0 = p->trapframe->a0;
+
+    if(p->traced && num != SYS_trace && num < NELEM(syscall_names) && syscall_names[num])
+    {
+      printf("[pid %d] %s(", p->pid, syscall_names[num]);
+      // if (num != SYS_write) 
+      // {
+      //   printf("[pid %d] %s(", p->pid, syscall_names[num]);
+      //   printf(") = %ld\n", p->trapframe->a0);
+      // }
+
+      if (num == SYS_open || num == SYS_unlink || num == SYS_chdir || num == SYS_mkdir || num == SYS_link)
+      {
+        char s[MAXPATH];
+        // if (argstr(0, s, sizeof(s)) >= 0)
+        //   printf("\"%s\"", s);
+        // else printf("<bad ptr>");
+        if (copyinstr(p->pagetable, s, arg0, sizeof(s)) < 0)
+            printf("<bad ptr>");
+        else
+            printf("\"%s\"", s);
+      }
+      else if(num == SYS_exec)
+      {
+        uint64 argv_addr;
+        char prog[MAXPATH];
+        argaddr(1, &argv_addr);
+
+        uint64 first_arg_ptr;
+        if(copyin(p->pagetable, (char*)&first_arg_ptr, argv_addr, sizeof(uint64)) >= 0 && first_arg_ptr != 0 && copyinstr(p->pagetable, prog, first_arg_ptr, sizeof(prog)) >= 0)
+        printf("\"%s\"", prog);
+        else printf("<bad ptr>");        
+      }
+      else 
+      {
+        printf("%ld", arg0);
+      }
+    
+    printf(") = %ld\n", p->trapframe->a0);
+      
+    }
+    
+
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);

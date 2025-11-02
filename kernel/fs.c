@@ -695,3 +695,20 @@ nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
 }
+
+// Append data to a file's end inside the running kernel.
+// Caller must hold ip->lock.
+void
+iappendtrace(struct inode *ip, char *buf, int n)
+{
+  int r;
+  while(n > 0){
+    r = writei(ip, 0, (uint64)buf, ip->size, n);
+    if(r < 0)
+      break;
+    ip->size += r;
+    n -= r;
+    buf += r;
+  }
+  iupdate(ip);
+}

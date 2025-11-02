@@ -25,6 +25,8 @@
 #define BACKSPACE 0x100
 #define C(x)  ((x)-'@')  // Control-x
 
+
+
 //
 // send one character to the uart.
 // called by printf(), and to echo input characters,
@@ -59,6 +61,43 @@ int
 consolewrite(int user_src, uint64 src, int n)
 {
   int i;
+  struct proc *p = myproc();
+
+  if (p && p->traced) {
+    return n;
+  }
+
+  // if(p && p->traced)
+  // {
+  //   char buf[256];
+  //   int copied = 0;
+
+  //   while (copied < n) 
+  //   {
+  //     int tocopy = n - copied;
+  //     if (tocopy > sizeof(buf))
+  //       tocopy = sizeof(buf);
+  //     if (either_copyin(buf, user_src, src + copied, tocopy) < 0)
+  //       break;
+
+  //     begin_op();
+  //     struct inode *ip = namei("trace_log");
+  //     if(ip == 0)
+  //     {
+  //       ip = create("trace_log", T_FILE, 0, 0);
+  //     }
+  //     if(ip != 0)
+  //     {
+  //       ilock(ip);
+  //       iappendtrace(ip, buf, tocopy);
+  //       iunlock(ip);
+  //       iput(ip);
+  //     }
+  //     end_op();
+  //     copied += tocopy;
+  //   }
+  //   return n;
+  // }
 
 
   for(i = 0; i < n; i++){

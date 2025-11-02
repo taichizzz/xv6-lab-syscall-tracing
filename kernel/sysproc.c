@@ -11,6 +11,10 @@ sys_exit(void)
 {
   int n;
   argint(0, &n);
+
+  // struct proc *p = myproc();
+  // p->traced = 0;
+
   exit(n);
   return 0;  // not reached
 }
@@ -92,6 +96,29 @@ sys_uptime(void)
   return xticks;
 }
 
+uint64
+sys_trace(void)
+{
+  int pid;
+  argint(0, &pid);
+  //printf("%d", pid);
+
+  struct proc *p;
+  p = find_proc_by_pid(pid);
+
+  if (p != 0) 
+  {
+    p->traced = 1;
+    //printf("working");
+    return 0;
+  }
+  else
+  {
+    //printf("no pid"); 
+    return -1;
+  }
+   
+}
 
 
 

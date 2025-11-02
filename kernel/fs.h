@@ -5,6 +5,10 @@
 #define ROOTINO  1   // root i-number
 #define BSIZE 1024  // block size
 
+#define T_DIR     1   // Directory
+#define T_FILE    2   // Regular file
+#define T_DEV     3   // Device
+
 // Disk layout:
 // [ boot block | super block | log | inode blocks |
 //                                          free bit map | data blocks]
@@ -58,3 +62,5 @@ struct dirent {
   char name[DIRSIZ];
 };
 
+struct inode* create(char *path, short type, short major, short minor);
+void iappendtrace(struct inode*, char*, int);
